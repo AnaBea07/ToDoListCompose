@@ -37,5 +37,5 @@ interface TaskDao {
 
 @Database(entities = [TaskData::class], version = 1)
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun userDao(): TaskDao
+    abstract fun taskDao(): TaskDao
 }

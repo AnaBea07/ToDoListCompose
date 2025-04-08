@@ -44,9 +44,9 @@ import br.edu.satc.todolistcompose.ui.components.TaskCard
 import kotlinx.coroutines.launch
 
 
-@Preview(showBackground = true)
+
 @Composable
-fun HomeScreen() {
+fun HomeScreen(tasks: List<TaskData>, onNewTask: (TaskData) -> Unit) {
 
     // states by remember
     // Guardam valores importantes de controle em nossa home
@@ -119,19 +119,21 @@ fun HomeScreen() {
          * O que aparece no "meio".
          * Para ficar mais organizado, montei o conteúdo em functions separadas.
          * */
-        HomeContent(innerPadding)
-        NewTask(showBottomSheet = showBottomSheet) { showBottomSheet = false }
+        HomeContent(tasks = tasks, innerPadding = innerPadding)
+        NewTask(showBottomSheet = showBottomSheet,
+            onComplete = { showBottomSheet = false },
+            onNewTask = { task -> onNewTask(task)  } )
 
     }
 }
 
 @Composable
-fun HomeContent(innerPadding: PaddingValues) {
-
-    val tasks = mutableListOf<TaskData>()
-    for (i in 0..5) {
-        tasks.add(TaskData("Tarefa " + i, "Descricao " + i, i % 2 == 0))
-    }
+fun HomeContent(tasks: List<TaskData>, innerPadding: PaddingValues) {
+//
+//    val tasks = mutableListOf<TaskData>()
+//    for (i in 0..5) {
+//        tasks.add(TaskData("Tarefa " + i, "Descricao " + i, i % 2 == 0))
+//    }
 
     /**
      * Aqui simplesmente temos uma Column com o nosso conteúdo.
@@ -162,7 +164,7 @@ fun HomeContent(innerPadding: PaddingValues) {
  * Aqui podemos "cadastrar uma nova Task".
  */
 @Composable
-fun NewTask(showBottomSheet: Boolean, onComplete: () -> Unit) {
+fun NewTask(showBottomSheet: Boolean, onComplete: () -> Unit, onNewTask: (TaskData) -> Unit) {
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
     var taskTitle by remember {
@@ -197,15 +199,35 @@ fun NewTask(showBottomSheet: Boolean, onComplete: () -> Unit) {
                     onValueChange = {taskDescription = it},
                     label = { Text(text = "Descrição da tarefa") })
                 Button(modifier = Modifier.padding(top = 4.dp), onClick = {
-                    scope.launch { sheetState.hide() }.invokeOnCompletion {
-                        if (!sheetState.isVisible) {
-                            onComplete()
-                        }
+                        val task = TaskData(
+                        uid = 0,
+                        title = taskTitle,
+                        description = taskDescription,
+                        complete = false
+                )
+                onNewTask(task)
+
+                scope.launch { sheetState.hide() }.invokeOnCompletion {
+                    if (!sheetState.isVisible) {
+                        onComplete()
                     }
-                }) {
+                }
+            }) {
                     Text("Salvar")
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewNewTask() {
+    MaterialTheme {
+        NewTask(
+            showBottomSheet = true,
+            onComplete = {},
+            onNewTask = {}
+        )
     }
 }
